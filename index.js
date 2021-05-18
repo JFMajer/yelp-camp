@@ -1,17 +1,23 @@
 const express = require('express');
+const app = express();
 const mongoose = require('mongoose');
+const env = require('dotenv').config();
 const ejsMate = require('ejs-mate');
-const session = require('express-session');
 const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
-const app = express();
+const passport = require('passport');
+const localStrategy = require('passport-local');
 const path = require('path');
 const methodOverride = require('method-override');
+const redis = require('redis');
+const session = require('express-session');
+const User = require('./models/user');
 
 
 // require views
-const campgrounds = require('./routes/campgrounds')
-const reviews = require('./routes/reviews')
+const campgrounds = require('./routes/campgrounds');
+const reviews = require('./routes/reviews');
+const userRoutes = require('./routes/users');
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -21,17 +27,25 @@ app.use(flash());
 app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, 'public')));
 
-const sessionConfig = {
+
+let RedisStore = require('connect-redis')(session)
+const redisClient = redis.createClient(6380, process.env.REDISCACHEHOSTNAME,
+    { auth_pass: process.env.REDISCACHEKEY, tls: { servername: process.env.REDISCACHEHOSTNAME } });
+
+app.use(
+  session({
+    store: new RedisStore({ client: redisClient }),
+    saveUninitialized: false,
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-        maxAge: 1000 * 60 * 60 * 24 * 7
-    }
-}
-app.use(session(sessionConfig));
+  })
+)
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
     res.locals.success = req.flash('success');
@@ -41,19 +55,20 @@ app.use((req, res, next) => {
 
 app.use('/campgrounds', campgrounds);
 app.use('/campgrounds/:id/reviews', reviews);
+app.use('/', userRoutes);
 
 //database connection
-mongoose.connect('mongodb://localhost/yelp-camp', {
+mongoose.connect("mongodb://" + process.env.COSMOSDB_HOST + ":" + process.env.COSMOSDB_PORT + "/" + process.env.COSMOSDB_DBNAME + "?ssl=true&replicaSet=globaldb", {
+    retryWrites: false,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: true
-});
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {
-    console.log('connected to the db...')
-});
+    auth: {
+        user: process.env.COSMODDB_USER,
+        password: process.env.COSMOSDB_PASSWORD
+    }
+})
+    .then(() => console.log('Connection to CosmosDB successful'))
+    .catch((err) => console.error(err));
 // --------------------------------------
 
 app.listen(3000, () => {

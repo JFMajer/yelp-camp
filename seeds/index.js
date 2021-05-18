@@ -2,15 +2,19 @@ const mongoose = require('mongoose');
 const cities = require('./cities');
 const {places, descriptors} = require('./seedHelpers');
 const Campground = require('../models/campground');
-const campground = require('../models/campground');
+const env = require('dotenv').config();
 
 //database connection
-mongoose.connect('mongodb://localhost/yelp-camp', {useNewUrlParser: true, useUnifiedTopology: true});
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log('connected to the db...')
-});
+mongoose.connect("mongodb://" + process.env.COSMOSDB_HOST + ":" + process.env.COSMOSDB_PORT + "/" + process.env.COSMOSDB_DBNAME + "?ssl=true&replicaSet=globaldb", {
+    retryWrites: false,
+    useNewUrlParser: true,
+    auth: {
+        user: process.env.COSMODDB_USER,
+        password: process.env.COSMOSDB_PASSWORD
+    }
+})
+    .then(() => console.log('Connection to CosmosDB successful'))
+    .catch((err) => console.error(err));
 // --------------------------------------
 
 
