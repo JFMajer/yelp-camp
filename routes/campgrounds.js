@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const {isLoggedIn} = require('../middleware');
 const Campground = require('../models/campground');
 const {campgroundSchema} = require('../schemas');
 
@@ -24,12 +24,13 @@ router.get('/', catchAsync(async (req, res) => {
 }))
 
 //create new campground
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.render('campgrounds/new');
 })
 
-router.post('/', validateCampground, catchAsync(async (req, res) => {
+router.post('/', isLoggedIn, validateCampground, catchAsync(async (req, res) => {
         const campground = new Campground(req.body.campground);
+        campground.author = req.user._id;
         await campground.save();
         req.flash('success', 'Successfully made a new campground!');
         res.redirect(`/campgrounds/${campground._id}`);
@@ -37,7 +38,7 @@ router.post('/', validateCampground, catchAsync(async (req, res) => {
 
 //show one specific campground
 router.get('/:id', catchAsync(async (req, res) => {
-    const campground = await (await Campground.findById(req.params.id).populate('reviews'));
+    const campground = await (await (await Campground.findById(req.params.id).populate('reviews').populate('author')));
     if (!campground) {
         req.flash('error', 'Campground not found');
         return res.redirect('/campgrounds');

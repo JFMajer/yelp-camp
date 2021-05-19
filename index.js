@@ -50,6 +50,7 @@ passport.deserializeUser(User.deserializeUser());
 app.use((req, res, next) => {
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
+    res.locals.currentUser = req.user;
     next();
 });
 
@@ -74,7 +75,6 @@ mongoose.connect("mongodb://" + process.env.COSMOSDB_HOST + ":" + process.env.CO
 app.listen(3000, () => {
     console.log('listening on port 3000...');
 })
-
 
 //---------------------------views below---------------------------------
 app.get('/', (req, res) => {
