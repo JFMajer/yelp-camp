@@ -21,18 +21,21 @@
                     </li>
                     <li class="list-group-item">$<%= campground.price %>/night </li>
                 </ul>
+                <% if (currentUser && campground.author.equals(currentUser._id)) { %> 
                 <div class="card-body">
                     <a href="/campgrounds/<%= campground._id %>/edit" class="card-link btn btn-info">Edit campground</a>
                     <form class="d-inline" action="/campgrounds/<%= campground._id %>?_method=DELETE" method="POST">
                         <button class="btn btn-danger">Remove this campground</button>
                     </form>
                 </div>
+                <% } %> 
                 <div class="card-footer text-muted">
                     <a href="/campgrounds">Back to all campgrounds</a>
                 </div>
             </div>
         </div>
         <div class="col-6">
+            <% if(currentUser) { %> 
             <h2>Leave a review</h2>
             <form action="/campgrounds/<%= campground.id %>/reviews" class="mb-3 needs-validation" method="POST"
                 novalidate>
@@ -49,17 +52,23 @@
                 </div>
                 <button class="btn btn-success">Submit</button>
             </form>
+            <% } %> 
             <% for (let rev of campground.reviews) { %>
                 <div class="mb-3 card">
                     <div class="card-body">
                         <h5 class="card-title">Rating: <%= rev.rating %>
                         </h5>
+                        <% if (rev.author) { %> 
+                        <h6 class="card-subtitlle mb-2 text-muted">By <%= rev.author.username %> </h6>
+                        <% } %> 
                         <p class="card-text">Review: <%= rev.body %>
                         </p>
+                        <% if (rev.author && currentUser && rev.author.equals(currentUser._id)) { %> 
                         <form action="/campgrounds/<%= campground._id %>/reviews/<%= rev._id %>?_method=DELETE"
                             method="POST">
                             <button class="btn btn-sm btn-danger">Delete</button>
                         </form>
+                        <% } %> 
                     </div>
                 </div>
                 <% } %>

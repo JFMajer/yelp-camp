@@ -37,9 +37,8 @@ app.use(
     store: new RedisStore({ client: redisClient }),
     saveUninitialized: false,
     secret: 'keyboard cat',
-    resave: false,
-  })
-)
+    resave: false
+  }));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -78,6 +77,10 @@ app.listen(3000, () => {
 
 //---------------------------views below---------------------------------
 app.get('/', (req, res) => {
+    res.render('home');
+})
+
+app.get('/test', (req, res) => {
     res.render('home');
 })
 
