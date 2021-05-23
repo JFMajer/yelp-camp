@@ -1,5 +1,6 @@
 const Campground = require('../models/campground');
 
+
 //show all campgrounds
 module.exports.index = async (req, res) => {
     const allCamps = await Campground.find({});
@@ -56,3 +57,4 @@ module.exports.deleteCampground = async (req, res) => {
     await Campground.findByIdAndRemove(id);
     res.redirect('/campgrounds');
 };
+

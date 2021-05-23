@@ -33,12 +33,12 @@ const redisClient = redis.createClient(6380, process.env.REDISCACHEHOSTNAME,
     { auth_pass: process.env.REDISCACHEKEY, tls: { servername: process.env.REDISCACHEHOSTNAME } });
 
 app.use(
-  session({
-    store: new RedisStore({ client: redisClient }),
-    saveUninitialized: false,
-    secret: 'keyboard cat',
-    resave: false
-  }));
+    session({
+        store: new RedisStore({ client: redisClient }),
+        saveUninitialized: false,
+        secret: 'keyboard cat',
+        resave: false
+    }));
 
 app.use(passport.initialize());
 app.use(passport.session());
