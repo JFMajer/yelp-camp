@@ -13,9 +13,16 @@ module.exports.renderNewForm = (req, res) => {
 };
 
 module.exports.createCampground = async (req, res) => {
+    console.log(req.files);
     const campground = new Campground(req.body.campground);
+    for (img of req.files) {
+        //console.log(img.url, img.blobName);
+        campground.images.push({url: 'https://testuploadfiles.blob.core.windows.net/uploads/'.concat(img.blobName) , blobname: img.blobName});
+    }
+    //console.log(campground.images);
     campground.author = req.user._id;
     await campground.save();
+    console.log(campground);
     req.flash('success', 'Successfully made a new campground!');
     res.redirect(`/campgrounds/${campground._id}`);
 };
